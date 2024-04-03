@@ -5,10 +5,16 @@ pragma solidity ^0.8.9;
 import "./XUniversalBase.sol";
 import "./IPolyERC20.sol";
 
-contract XGameingUC is XUniversalBase {
+contract XGamingUC is XUniversalBase {
     IPolyERC20 public polyERC20;
     address public owner;
     event BuyNFTAckReceived(address recipient, uint256 nftId, string message);
+
+    mapping(address => uint256) public latestFaucetTime;
+    mapping(NFTType => uint256) public nftPrice;
+    mapping(NFTType => uint256) public nftPoint;
+    // For leaderboard
+    mapping(address => uint256) public userPoints;
 
     constructor(
         address _middleware,
@@ -27,12 +33,6 @@ contract XGameingUC is XUniversalBase {
         owner = msg.sender;
         setPolyERC20(_polyERC20);
     }
-
-    mapping(address => uint256) latestFaucetTime;
-    mapping(NFTType => uint256) nftPrice;
-    mapping(NFTType => uint256) nftPoint;
-    // For leaderboard
-    mapping(address => uint256) userPoints;
 
     function setPolyERC20(address _polyERC20) external {
         require(msg.sender == owner, "Only owner can call this function");

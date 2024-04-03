@@ -10,6 +10,7 @@ import "./XUniversalBase.sol";
 import "./PolyERC721UC.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "./IPolyERC20.sol";
 
 contract ManagerNFTUC is XUniversalBase, ERC721, ERC721Burnable {
     event BurnAckReceived(address receiver, uint256 tokenId, string message);
