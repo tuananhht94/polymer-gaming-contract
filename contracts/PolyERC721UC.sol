@@ -77,12 +77,13 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
         );
     }
 
-    function _getRandomNumber(
+    function getRandomNumber(
         uint256 min,
         uint256 max
-    ) internal view returns (uint256) {
+    ) public view returns (uint256) {
         require(min <= max, "Invalid range");
-        return (uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender))) % (max - min + 1)) + min;
+        uint256 blockValue = uint256(blockhash(block.number - 1));
+        return uint256(keccak256(abi.encodePacked(blockValue, block.timestamp))) % (max - min + 1) + min;
     }
 
     /**
@@ -104,7 +105,7 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
 
         if (packageType == IbcPacketType.FAUCET) {
             address caller = abi.decode(data, (address));
-            uint256 amount = _getRandomNumber(1, 10);
+            uint256 amount = getRandomNumber(1, 10);
             return AckPacket(true, abi.encode(packageType, abi.encode(caller, amount)));
         } else {
             revert("Invalid packet type");

@@ -10,7 +10,13 @@ contract PolyERC20 is ERC20 {
 
     uint256 public constant cap = 5000000000 ether;
 
+    address public owner;
     address[] public operators;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
 
     modifier onlyOperator() {
         bool isOperator = false;
@@ -24,7 +30,24 @@ contract PolyERC20 is ERC20 {
         _;
     }
 
-    constructor() ERC20("AC", "AC") {}
+    constructor() ERC20("PolyERC20", "PolyERC20") {
+        owner = msg.sender;
+        operators.push(msg.sender);
+    }
+
+    function addOperator(address operator) external onlyOwner {
+        operators.push(operator);
+    }
+
+    function removeOperator(address operator) external onlyOwner {
+        for (uint256 i = 0; i < operators.length; i++) {
+            if (operators[i] == operator) {
+                operators[i] = operators[operators.length - 1];
+                operators.pop();
+                break;
+            }
+        }
+    }
 
     function mint(address to, uint256 amount) external virtual onlyOperator {
         _mint(to, amount);

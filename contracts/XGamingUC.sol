@@ -75,7 +75,7 @@ contract XGamingUC is XGamingUCBase {
         bytes32 channelId,
         uint64 timeoutSeconds
     ) external {
-        uint256 random = _getRandomNumber(1, 10);
+        uint256 random = getRandomNumber(1, 10);
         NFTType nftType = NFTType.POLY1;
         if (random >= 5 && random < 7) {
             nftType = NFTType.POLY2;
@@ -87,12 +87,13 @@ contract XGamingUC is XGamingUCBase {
         buyNFToken(destPortAddr, channelId, timeoutSeconds, nftType);
     }
 
-    function _getRandomNumber(
+    function getRandomNumber(
         uint256 min,
         uint256 max
-    ) internal view returns (uint256) {
+    ) public view returns (uint256) {
         require(min <= max, "Invalid range");
-        return (uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender))) % (max - min + 1)) + min;
+        uint256 blockValue = uint256(blockhash(block.number - 1));
+        return uint256(keccak256(abi.encodePacked(blockValue, block.timestamp))) % (max - min + 1) + min;
     }
 
     /**
@@ -149,7 +150,7 @@ contract XGamingUC is XGamingUCBase {
 
         if (packetType == IbcPacketType.FAUCET) {
             (address caller, uint256 amount) = abi.decode(data, (address, uint256));
-            polyERC20.mint(caller, amount);
+            polyERC20.mint(caller, amount * 10**18);
         } else if (packetType == IbcPacketType.BUY_RANDOM_NFT) {
             // TODO: Implement logic to mint NFT
         } else {
