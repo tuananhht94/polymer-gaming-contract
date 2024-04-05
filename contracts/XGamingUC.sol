@@ -12,7 +12,7 @@ contract XGamingUC is BaseGameUC {
     mapping(address => uint256) public latestFaucetTime;
     mapping(NFTType => uint256) public nftPrice;
     mapping(NFTType => uint256) public nftPoint;
-    uint256 public randomPriceBuyNFTAmount = 60;
+    uint256 public randomPriceBuyNFTAmount = 30;
 
     constructor(address _middleware) BaseGameUC(_middleware) {
         // Init nft prices
