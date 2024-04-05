@@ -95,3 +95,10 @@ clean-all:
     rm -rf artifacts cache
     forge clean
     rm -rf node_modules
+
+deploy-PolyERC20 NETWORK:
+    echo "Deploying contracts with Hardhat..."
+    npx hardhat run scripts/deploy/deployPolyERC20.js --network {{NETWORK}}
+set-operator-XGamingUC:
+    echo "Set operator address for XGamingUC..."
+    npx hardhat run scripts/deploy/updateXGamingConfig.js  --network optimism 
