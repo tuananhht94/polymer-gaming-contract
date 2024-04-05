@@ -1,69 +1,36 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import "./base/UniversalChanIbcApp.sol";
-import "@open-ibc/vibc-core-smart-contracts/contracts/libs/Ibc.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-contract PolyERC20 is UniversalChanIbcApp, ERC20 {
-    event TokenMint(address indexed receiver, uint256 amount);
-    event TransferSuccess();
-    event TransferFailure();
+contract PolyERC20 is ERC20 {
+    using SafeMath for uint256;
 
-    constructor(address _middleware) ERC20('PolyERC20', 'PolyERC20') UniversalChanIbcApp(_middleware) {}
+    uint256 public constant cap = 5000000000 ether;
 
-    function mint(address account, uint256 amount) public virtual onlyOwner {
-        _mint(account, amount);
+    address[] public operators;
+
+    modifier onlyOperator() {
+        bool isOperator = false;
+        for (uint256 i = 0; i < operators.length; i++) {
+            if (operators[i] == msg.sender) {
+                isOperator = true;
+                break;
+            }
+        }
+        require(isOperator, "Only operator can call this function");
+        _;
     }
 
-    function burn(address account, uint256 amount) public virtual onlyOwner {
-        _burn(account, amount);
+    constructor() ERC20("AC", "AC") {}
+
+    function mint(address to, uint256 amount) external virtual onlyOperator {
+        _mint(to, amount);
     }
 
-    function transferFrom(address destPortAddr, uint256 amount, bytes32 channelId, uint64 timeoutSeconds) public {
+    function burn(uint256 amount) external virtual {
         _burn(msg.sender, amount);
-        bytes memory payload = abi.encode(msg.sender, amount);
-        uint64 timeoutTimestamp = uint64((block.timestamp + timeoutSeconds) * 1_000_000_000);
-        IbcUniversalPacketSender(mw).sendUniversalPacket(
-            channelId, IbcUtils.toBytes32(destPortAddr), payload, timeoutTimestamp
-        );
-    }
-
-    function onRecvUniversalPacket(
-        bytes32 channelId,
-        UniversalPacket calldata packet
-    ) external override onlyIbcMw returns (AckPacket memory ackPacket) {
-        if (packet.srcPortAddr != packet.destPortAddr) {
-            revert receiverNotOriginPacketSender();
-        }
-        (address sender, uint256 amount) = abi.decode(packet.appData, (address, uint256));
-        _mint(sender, amount);
-        emit TokenMint(sender, amount);
-        return AckPacket(true, abi.encode(address(this)));
-    }
-
-    function onUniversalAcknowledgement(
-        bytes32 channelId,
-        UniversalPacket memory packet,
-        AckPacket calldata ack
-    ) external override onlyIbcMw {
-        if (packet.srcPortAddr != packet.destPortAddr) {
-            revert receiverNotOriginPacketSender();
-        }
-        (address sender, uint256 amount) = abi.decode(packet.appData, (address, uint256));
-        if (ack.success) {
-            emit TransferSuccess();
-        } else {
-            emit TransferFailure();
-            _mint(sender, amount);
-        }
-    }
-
-    function onTimeoutUniversalPacket(bytes32 channelId, UniversalPacket calldata packet) external override onlyIbcMw {
-        if (packet.srcPortAddr != packet.destPortAddr) {
-            revert receiverNotOriginPacketSender();
-        }
-        (address sender, uint256 amount) = abi.decode(packet.appData, (address, uint256));
-        _mint(sender, amount);
     }
 }

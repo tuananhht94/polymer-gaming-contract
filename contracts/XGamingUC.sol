@@ -28,7 +28,7 @@ contract XGamingUC is XGamingUCBase {
         nftPoint[NFTType.POLY4] = 500;
     }
 
-    function setPolyERC20(address _polyERC20) external onlyOwner {
+    function setPolyERC20Address(address _polyERC20) external onlyOwner {
         polyERC20 = IPolyERC20(_polyERC20);
     }
 
