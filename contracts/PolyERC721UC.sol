@@ -13,9 +13,6 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
     string public tokenURIC4 =
         "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
 
-    event MintAckReceived(address receiver, uint256 tokenId, string message);
-    event NFTAckReceived(address voter, address recipient, uint256 voteId);
-
     constructor(
         address _middleware
     ) UniversalChanIbcApp(_middleware) ERC721("PolymerNFT", "POLY") {
@@ -37,9 +34,29 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
         currentTokenId += 1;
         uint256 tokenId = currentTokenId;
         tokenTypeMap[tokenId] = pType;
+        ownerTokenMap[recipient].push(tokenId);
         typeTokenMap[pType].push(tokenId);
         _safeMint(recipient, tokenId);
         return tokenId;
+    }
+
+    function burn(
+        address destPortAddr,
+        bytes32 channelId,
+        uint64 timeoutSeconds,
+        uint256 tokenId
+    ) public {
+        require(ownerOf(tokenId) == msg.sender, "Not the owner");
+        _burn(tokenId);
+        delete tokenTypeMap[tokenId];
+        delete ownerTokenMap[msg.sender][tokenId];
+        delete typeTokenMap[tokenTypeMap[tokenId]][tokenId];
+        _sendUniversalPacket(
+            destPortAddr,
+            channelId,
+            timeoutSeconds,
+            abi.encode(IbcPacketType.BURN_NFT, abi.encode(msg.sender, tokenId))
+        );
     }
 
     function transferFrom(
@@ -162,14 +179,17 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
         AckPacket calldata ack
     ) external override onlyIbcMw {
         ackPackets.push(UcAckWithChannel(channelId, packet, ack));
+//        (IbcPacketType packetType, bytes memory data) = abi.decode(
+//            ack.data,
+//            (IbcPacketType, bytes)
+//        );
 
-        // decode the counter from the ack packet
-        (address caller, uint256 tokenId) = abi.decode(
-            ack.data,
-            (address, uint256)
-        );
-
-        emit MintAckReceived(caller, tokenId, "NFT minted successfully");
+//        if (packetType == IbcPacketType.BURN_NFT) {
+//            (address caller, uint256 tokenId) = abi.decode(
+//                data,
+//                (address, uint256)
+//            );
+//        }
     }
 
     /**

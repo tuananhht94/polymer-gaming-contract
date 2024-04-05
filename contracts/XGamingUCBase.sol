@@ -14,21 +14,4 @@ contract XGamingUCBase is BasePolyERC721, UniversalChanIbcApp {
     }
 
     constructor(address _middleware) UniversalChanIbcApp(_middleware) {}
-
-    function _sendUniversalPacket(
-        address destPortAddr,
-        bytes32 channelId,
-        uint64 timeoutSeconds,
-        bytes memory payload
-    ) internal {
-        uint64 timeoutTimestamp = uint64(
-            (block.timestamp + timeoutSeconds) * 1000000000
-        );
-        IbcUniversalPacketSender(mw).sendUniversalPacket(
-            channelId,
-            IbcUtils.toBytes32(destPortAddr),
-            payload,
-            timeoutTimestamp
-        );
-    }
 }

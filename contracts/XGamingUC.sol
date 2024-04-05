@@ -123,14 +123,13 @@ contract XGamingUC is XGamingUCBase {
             (IbcPacketType, bytes)
         );
         if (packetType == IbcPacketType.BURN_NFT) {
-            PacketNFT memory burnNFT = abi.decode(data, (PacketNFT));
-            _burnNFT(burnNFT);
-        } else if (packetType == IbcPacketType.RETURN_NFT) {
-            PacketNFT memory returnNFT = abi.decode(data, (PacketNFT));
-            _returnNFT(returnNFT);
-        } else {
-            revert("Invalid packet type");
+            (address caller, uint256 tokenId) = abi.decode(data, (address, uint256));
+            polyERC20.mint(caller, nftPrice[tokenTypeMap[tokenId]]);
+            delete tokenTypeMap[tokenId];
+            delete ownerTokenMap[caller][tokenId];
+            delete typeTokenMap[tokenTypeMap[tokenId]];
         }
+
         return AckPacket(true, packet.appData);
     }
 
@@ -173,6 +172,7 @@ contract XGamingUC is XGamingUCBase {
                 (address, NFTType, uint256)
             );
             tokenTypeMap[tokenId] = nftType;
+            ownerTokenMap[caller].push(tokenId);
             typeTokenMap[nftType].push(tokenId);
             polyERC20.burn(nftPrice[nftType] * 10 ** 18);
             emit BuyNFTAckReceived(caller, tokenId, "NFT bought successfully");

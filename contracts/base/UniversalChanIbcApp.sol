@@ -56,6 +56,22 @@ contract UniversalChanIbcApp is IbcMwUser, IbcUniversalPacketReceiver {
                     uint64 timeoutTimestamp
                 ) external;
      */
+    function _sendUniversalPacket(
+        address destPortAddr,
+        bytes32 channelId,
+        uint64 timeoutSeconds,
+        bytes memory payload
+    ) internal {
+        uint64 timeoutTimestamp = uint64(
+            (block.timestamp + timeoutSeconds) * 1000000000
+        );
+        IbcUniversalPacketSender(mw).sendUniversalPacket(
+            channelId,
+            IbcUtils.toBytes32(destPortAddr),
+            payload,
+            timeoutTimestamp
+        );
+    }
 
     /**
      * @dev Packet lifecycle callback that implements packet receipt logic and returns and acknowledgement packet.
