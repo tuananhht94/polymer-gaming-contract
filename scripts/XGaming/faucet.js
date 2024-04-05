@@ -25,7 +25,8 @@ async function main() {
     // Send the packet
     // console.log(await ibcApp.getRandomNumber(1, 10));
     // Send the packet
-    await ibcApp.connect(accounts[0]).faucetToken(destPortAddr, channelIdBytes, timeoutSeconds);
+   const tx = await ibcApp.connect(accounts[0]).faucetToken(destPortAddr, channelIdBytes, timeoutSeconds);
+   console.log(tx)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
