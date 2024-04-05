@@ -9,17 +9,18 @@ import "./BasePolyERC721.sol";
 
 contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
     uint256 public currentTokenId = 0;
+    mapping(NFTType => string) public tokenURIs;
     string public tokenURIC4 =
     "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
 
     event MintAckReceived(address receiver, uint256 tokenId, string message);
     event NFTAckReceived(address voter, address recipient, uint256 voteId);
 
-    constructor(address _middleware) UniversalChanIbcApp(_middleware) ERC721("PolymerC4NFT", "POLY4") {
-        tokenURIs[NFTType.POLY1] = "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
-        tokenURIs[NFTType.POLY2] = "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
-        tokenURIs[NFTType.POLY3] = "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
-        tokenURIs[NFTType.POLY4] = "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
+    constructor(address _middleware) UniversalChanIbcApp(_middleware) ERC721("PolymerNFT", "POLY") {
+        tokenURIs[NFTType.POLY1] = "https://media.discordapp.net/attachments/1222189690816565328/1225547538548129802/DALLE_2024-04-04_12.53.18_-_Create_an_image_of_a_fluffy_orange_adventurous_creature_resembling_an_intrepid_explorer._The_creature_should_have_large_eyes_a_bright_and_determine.webp?ex=66218716&is=660f1216&hm=1afd67dc360792fb98ac18d951c618ba430776280e34866e27fbd21e8e60865b&=&format=webp&width=1288&height=1288";
+        tokenURIs[NFTType.POLY2] = "https://media.discordapp.net/attachments/1222189690816565328/1225547539374276628/de1c9b4f-fe72-4c6f-b8bc-1e6fa8713fea.webp?ex=66218716&is=660f1216&hm=9054ebbb64f1a3d66b55ffe815678a9e79d0707d2e35899d64a905dff697c366&=&format=webp&width=1288&height=1288";
+        tokenURIs[NFTType.POLY3] = "https://media.discordapp.net/attachments/1222189690816565328/1225547539953221643/f741ee99-e48c-4846-9b00-2ba08aafc3e8.webp?ex=66218717&is=660f1217&hm=36479489436ae36f38ffeb2c03e874674cae86cc005fa14fb9c4fa4597b0476f&=&format=webp&width=1288&height=1288";
+        tokenURIs[NFTType.POLY4] = "https://media.discordapp.net/attachments/1222189690816565328/1225547540460601506/polymer_pomeranian.png?ex=66218717&is=660f1217&hm=44a263a8f36530a11164d61d820af176b65149747df3532d4adb8b580e526be9&=&format=webp&quality=lossless&width=1288&height=1288";
     }
 
     function mint(address recipient, NFTType pType) internal returns (uint256) {
@@ -61,22 +62,6 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
         mint(recipient, pType);
     }
 
-    function crossChainMint(address destPortAddr, bytes32 channelId, uint64 timeoutSeconds, NFTType tokenType)
-    external
-    {
-        bytes memory payload = abi.encode(msg.sender, tokenType);
-        uint64 timeoutTimestamp = uint64((block.timestamp + timeoutSeconds) * 1000000000);
-
-        // Check if they have enough Polymer Testnet Tokens to mint the NFT
-        // If not Revert
-
-        // Burn the Polymer Testnet Tokens from the sender
-
-        IbcUniversalPacketSender(mw).sendUniversalPacket(
-            channelId, IbcUtils.toBytes32(destPortAddr), payload, timeoutTimestamp
-        );
-    }
-
     function getRandomNumber(
         uint256 min,
         uint256 max
@@ -107,6 +92,10 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
             address caller = abi.decode(data, (address));
             uint256 amount = getRandomNumber(1, 10);
             return AckPacket(true, abi.encode(packageType, abi.encode(caller, amount)));
+        } else if (packageType == IbcPacketType.BUY_NFT) {
+            (address caller, NFTType nftType) = abi.decode(data, (address, NFTType));
+            uint256 tokenId = mint(caller, nftType);
+            return AckPacket(true, abi.encode(packageType, abi.encode(caller, nftType, tokenId)));
         } else {
             revert("Invalid packet type");
         }

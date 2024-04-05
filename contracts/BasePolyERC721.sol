@@ -13,6 +13,5 @@ contract BasePolyERC721 {
     }
 
     mapping(uint256 => NFTType) public tokenTypeMap;
-    mapping(NFTType => string) public tokenURIs;
     mapping(NFTType => uint256[]) public typeTokenMap;
 }

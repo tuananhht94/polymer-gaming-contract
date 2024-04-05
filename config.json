@@ -28,12 +28,12 @@
   },
   "sendUniversalPacket": {
     "optimism": {
-      "portAddr": "0xBAF5341B508b81BebA8120715F1c1E499b25c734",
+      "portAddr": "0xC2f4360B0663B8837519D5eE15f336d0065456b6",
       "channelId": "channel-10",
       "timeout": 36000
     },
     "base": {
-      "portAddr": "0x190e43CdFE85802204562D6adaC6cbA39640d6f9",
+      "portAddr": "0x2B821e6768FAB4959dcB59A132B1D7BE9286FE18",
       "channelId": "channel-11",
       "timeout": 36000
     }
