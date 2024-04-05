@@ -124,9 +124,7 @@ contract XGamingUC is BaseGameUC {
         if (packetType == IbcPacketType.BURN_NFT) {
             (address caller, uint256 tokenId) = abi.decode(data, (address, uint256));
             polyERC20.mint(caller, nftPrice[_tokenTypeMap[tokenId]] * 10 ** 18 * 20 / 100);
-            // delete _tokenTypeMap[tokenId];
-            // delete _ownerTokenMap[caller][tokenId];
-            // delete _typeTokenMap[_tokenTypeMap[tokenId]];
+            deleteToken(tokenId);
         }
 
         return AckPacket(true, packet.appData);
