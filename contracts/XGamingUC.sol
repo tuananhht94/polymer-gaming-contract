@@ -15,10 +15,7 @@ contract XGamingUC is XGamingUCBase {
     mapping(NFTType => uint256) public nftPoint;
     mapping(address => uint256) public userPoints;
 
-    constructor(
-        address _middleware,
-        address _polyERC20
-    ) XGamingUCBase(_middleware) {
+    constructor(address _middleware) XGamingUCBase(_middleware) {
         // Init nft prices
         nftPrice[NFTType.POLY1] = 25;
         nftPrice[NFTType.POLY2] = 50;
@@ -29,6 +26,9 @@ contract XGamingUC is XGamingUCBase {
         nftPoint[NFTType.POLY2] = 50;
         nftPoint[NFTType.POLY3] = 150;
         nftPoint[NFTType.POLY4] = 500;
+    }
+
+    function setPolyERC20(address _polyERC20) external onlyOwner {
         polyERC20 = IPolyERC20(_polyERC20);
     }
 
