@@ -27,11 +27,9 @@ async function main() {
     // Send the packet
     const polyERC20 = await ethers.getContractAt('PolyERC20', process.env.POLY_ERC20_ADDRESS);
     await polyERC20.connect(accounts[0]).mint(accounts[0].address, hre.ethers.parseEther("1000"));
-    const randomNFt = await ibcApp.connect(accounts[0]).prickRandomNFTCanBuy();
-    const nftPrice = await ibcApp.nftPrice(randomNFt);  
-    console.log(`NFT ${randomNFt} Price: ${nftPrice}`);
-    await polyERC20.connect(accounts[0]).approve(ibcApp.target, hre.ethers.parseEther(nftPrice.toString()));
-    const tx = await ibcApp.connect(accounts[0]).buyNFT(destPortAddr, channelIdBytes, timeoutSeconds, randomNFt);
+  //  const approveBalance = await ibcApp.randomPriceBuyNFTAmount();  
+    await polyERC20.connect(accounts[0]).approve(ibcApp.target, hre.ethers.parseEther(`60`));
+    const tx = await ibcApp.connect(accounts[0]).buyRandomNFT(destPortAddr, channelIdBytes, timeoutSeconds);
     console.log(tx.hash);
 }
 

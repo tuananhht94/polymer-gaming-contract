@@ -13,6 +13,7 @@ contract XGamingUC is XGamingUCBase {
     mapping(address => uint256) public latestFaucetTime;
     mapping(NFTType => uint256) public nftPrice;
     mapping(NFTType => uint256) public nftPoint;
+    uint256 public randomPriceBuyNFTAmount = 60;
 
     constructor(address _middleware) XGamingUCBase(_middleware) {
         // Init nft prices
@@ -74,23 +75,24 @@ contract XGamingUC is XGamingUCBase {
         );
     }
 
-    function prickRandomNFTCanBuy() external view returns (NFTType) {
-        uint256 tokenBalance = polyERC20.balanceOf(msg.sender);
-        NFTType[] memory nfts = new NFTType[](4);
-        uint256 affordableNFTsCount = 0;
-
-        for (uint256 i = 0; i < 4; i++) {
-            if (nftPrice[NFTType(i)] * 10 ** 18 <= tokenBalance) {
-                nfts[affordableNFTsCount] = NFTType(i);
-                affordableNFTsCount++;
-            }
-        }
-
-        require(affordableNFTsCount > 0, "No affordable NFTs available");
-
-        uint256 randomIndex = getRandomNumber(0, affordableNFTsCount - 1);
-        NFTType randomNFT = nfts[randomIndex];
-        return randomNFT;
+    function buyRandomNFT(
+        address destPortAddr,
+        bytes32 channelId,
+        uint64 timeoutSeconds
+    ) public {
+        uint256 amount = randomPriceBuyNFTAmount * 10 ** 18;
+        require(
+            polyERC20.allowance(msg.sender, address(this)) >= amount,
+            "Insufficient balance"
+        );
+        polyERC20.transferFrom(msg.sender, address(this), amount);
+        // Mint NFT
+        _sendUniversalPacket(
+            destPortAddr,
+            channelId,
+            timeoutSeconds,
+            abi.encode(IbcPacketType.BUY_RANDOM_NFT, abi.encode(msg.sender))
+        );
     }
 
     function getRandomNumber(
@@ -172,8 +174,21 @@ contract XGamingUC is XGamingUCBase {
             );
             tokenTypeMap[tokenId] = nftType;
             typeTokenMap[nftType].push(tokenId);
-            polyERC20.burn(nftPrice[nftType]);
+            polyERC20.burn(nftPrice[nftType] * 10 ** 18);
             emit BuyNFTAckReceived(caller, tokenId, "NFT bought successfully");
+        } else if (packetType == IbcPacketType.BUY_RANDOM_NFT) {
+            (address caller, NFTType nftType, uint256 tokenId) = abi.decode(
+                data,
+                (address, NFTType, uint256)
+            );
+            tokenTypeMap[tokenId] = nftType;
+            typeTokenMap[nftType].push(tokenId);
+            polyERC20.burn(randomPriceBuyNFTAmount * 10 ** 18);
+            emit BuyNFTAckReceived(
+                caller,
+                tokenId,
+                "NFT bought random successfully"
+            );
         } else {
             revert("Invalid packet type");
         }
