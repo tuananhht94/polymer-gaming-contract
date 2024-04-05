@@ -45,12 +45,12 @@ contract PolyERC721UC is BaseGameUC, ERC721 {
         bytes32 channelId,
         uint64 timeoutSeconds,
         uint256 tokenId
-    ) public {
+    ) external {
         require(ownerOf(tokenId) == msg.sender, "Not the owner");
         _burn(tokenId);
-        delete _tokenTypeMap[tokenId];
-        delete _ownerTokenMap[msg.sender][tokenId];
-        delete _typeTokenMap[_tokenTypeMap[tokenId]][tokenId];
+        // delete _tokenTypeMap[tokenId];
+        // delete _ownerTokenMap[msg.sender][tokenId];
+        // delete _typeTokenMap[_tokenTypeMap[tokenId]];
         _sendUniversalPacket(
             destPortAddr,
             channelId,

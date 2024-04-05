@@ -118,15 +118,15 @@ contract XGamingUC is BaseGameUC {
     ) external override onlyIbcMw returns (AckPacket memory ackPacket) {
         recvedPackets.push(UcPacketWithChannel(channelId, packet));
         (IbcPacketType packetType, bytes memory data) = abi.decode(
-            ackPacket.data,
+            packet.appData,
             (IbcPacketType, bytes)
         );
         if (packetType == IbcPacketType.BURN_NFT) {
             (address caller, uint256 tokenId) = abi.decode(data, (address, uint256));
-            polyERC20.mint(caller, nftPrice[_tokenTypeMap[tokenId]]);
-            delete _tokenTypeMap[tokenId];
-            delete _ownerTokenMap[caller][tokenId];
-            delete _typeTokenMap[_tokenTypeMap[tokenId]];
+            polyERC20.mint(caller, nftPrice[_tokenTypeMap[tokenId]] * 10 ** 18 * 20 / 100);
+            // delete _tokenTypeMap[tokenId];
+            // delete _ownerTokenMap[caller][tokenId];
+            // delete _typeTokenMap[_tokenTypeMap[tokenId]];
         }
 
         return AckPacket(true, packet.appData);
@@ -180,8 +180,6 @@ contract XGamingUC is BaseGameUC {
                 tokenId,
                 "NFT bought random successfully"
             );
-        } else {
-            revert("Invalid packet type");
         }
     }
 

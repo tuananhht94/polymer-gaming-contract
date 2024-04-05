@@ -23,11 +23,9 @@ async function main() {
   const channelIdBytes = hre.ethers.encodeBytes32String(channelId);
   const timeoutSeconds = sendConfig[`${networkName}`]["timeout"];
   const tokens = await ibcApp.ownerTokenMap(accounts[0].address);
-  console.log(tokens);
-  // const tx = await ibcApp.connect(accounts[0]).burn(destPortAddr, channelIdBytes, timeoutSeconds, 1,  {
-  //     gasLimit: 100000,
-  //    });
-  // console.log(tx.hash);
+  console.log(`tokens: ${tokens}`);
+  const tx = await ibcApp.connect(accounts[0]).burn(destPortAddr, channelIdBytes, timeoutSeconds, tokens[0]);
+  console.log(tx.hash);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
