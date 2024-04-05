@@ -33,9 +33,7 @@ contract PolyERC721UC is BaseGameUC, ERC721 {
     function mint(address recipient, NFTType pType) internal returns (uint256) {
         currentTokenId += 1;
         uint256 tokenId = currentTokenId;
-        _tokenTypeMap[tokenId] = pType;
-        _ownerTokenMap[recipient].push(tokenId);
-        _typeTokenMap[pType].push(tokenId);
+        addToken(recipient, tokenId, pType);
         _safeMint(recipient, tokenId);
         return tokenId;
     }

@@ -22,10 +22,12 @@ async function main() {
   const channelId = sendConfig[`${networkName}`]["channelId"];
   const channelIdBytes = hre.ethers.encodeBytes32String(channelId);
   const timeoutSeconds = sendConfig[`${networkName}`]["timeout"];
-  const tokens = await ibcApp.ownerTokenMap(accounts[0].address);
-  console.log(`tokens: ${tokens}`);
-  const tx = await ibcApp.connect(accounts[0]).burn(destPortAddr, channelIdBytes, timeoutSeconds, tokens[0]);
-  console.log(tx.hash);
+  const randomNumber = Math.floor(Math.random() * 4);
+  const tokens = await ibcApp.ownerTokenMap(accounts[0].address, randomNumber);
+  if (tokens.length > 0) {
+    const tx = await ibcApp.connect(accounts[0]).burn(destPortAddr, channelIdBytes, timeoutSeconds, tokens[0]);
+    console.log(tx.hash);
+  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

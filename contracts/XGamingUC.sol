@@ -13,6 +13,7 @@ contract XGamingUC is BaseGameUC {
     mapping(NFTType => uint256) public nftPrice;
     mapping(NFTType => uint256) public nftPoint;
     uint256 public randomPriceBuyNFTAmount = 60;
+    mapping(address => uint256) public userPoints;
 
     constructor(address _middleware) BaseGameUC(_middleware) {
         // Init nft prices
@@ -160,9 +161,7 @@ contract XGamingUC is BaseGameUC {
                 data,
                 (address, NFTType, uint256)
             );
-            _tokenTypeMap[tokenId] = nftType;
-            _ownerTokenMap[caller].push(tokenId);
-            _typeTokenMap[nftType].push(tokenId);
+            addToken(caller, tokenId, nftType);
             polyERC20.burn(nftPrice[nftType] * 10 ** 18);
             emit BuyNFTAckReceived(caller, tokenId, "NFT bought successfully");
         } else if (packetType == IbcPacketType.BUY_RANDOM_NFT) {
@@ -170,8 +169,7 @@ contract XGamingUC is BaseGameUC {
                 data,
                 (address, NFTType, uint256)
             );
-            _tokenTypeMap[tokenId] = nftType;
-            _typeTokenMap[nftType].push(tokenId);
+            addToken(caller, tokenId, nftType);
             polyERC20.burn(randomPriceBuyNFTAmount * 10 ** 18);
             emit BuyNFTAckReceived(
                 caller,
