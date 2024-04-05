@@ -7,9 +7,25 @@ import '@open-ibc/vibc-core-smart-contracts/contracts/interfaces/IbcReceiver.sol
 import '@open-ibc/vibc-core-smart-contracts/contracts/interfaces/IbcDispatcher.sol';
 import '@open-ibc/vibc-core-smart-contracts/contracts/interfaces/IbcMiddleware.sol';
 
-// UniversalChanIbcApp is a contract that can be used as a base contract 
+// UniversalChanIbcApp is a contract that can be used as a base contract
 // for IBC-enabled contracts that send packets over the universal channel.
 contract UniversalChanIbcApp is IbcMwUser, IbcUniversalPacketReceiver {
+    enum IbcPacketStatus {
+        UNSENT,
+        SENT,
+        ACKED,
+        TIMEOUT
+    }
+
+    enum IbcPacketType {
+        FAUCET,
+        BURN_NFT,
+        RETURN_NFT,
+        MINT_NFT,
+        BUY_NFT,
+        BUY_RANDOM_NFT
+    }
+
     struct UcPacketWithChannel {
         bytes32 channelId;
         UniversalPacket packet;
@@ -30,7 +46,7 @@ contract UniversalChanIbcApp is IbcMwUser, IbcUniversalPacketReceiver {
 
     constructor(address _middleware) IbcMwUser(_middleware) {}
 
-    /** 
+    /**
      * @dev Implement a function to send a packet that calls the IbcUniversalPacketSender(mw).sendUniversalPacket function
      *      It has the following function handle:
      *          function sendUniversalPacket(
@@ -44,7 +60,7 @@ contract UniversalChanIbcApp is IbcMwUser, IbcUniversalPacketReceiver {
     /**
      * @dev Packet lifecycle callback that implements packet receipt logic and returns and acknowledgement packet.
      *      MUST be overriden by the inheriting contract.
-     * 
+     *
      * @param channelId the ID of the channel (locally) the packet was received on.
      * @param packet the Universal packet encoded by the source and relayed by the relayer.
      */
@@ -63,7 +79,7 @@ contract UniversalChanIbcApp is IbcMwUser, IbcUniversalPacketReceiver {
     /**
      * @dev Packet lifecycle callback that implements packet acknowledgment logic.
      *      MUST be overriden by the inheriting contract.
-     * 
+     *
      * @param channelId the ID of the channel (locally) the ack was received on.
      * @param packet the Universal packet encoded by the source and relayed by the relayer.
      * @param ack the acknowledgment packet encoded by the destination and relayed by the relayer.
@@ -82,7 +98,7 @@ contract UniversalChanIbcApp is IbcMwUser, IbcUniversalPacketReceiver {
      * @dev Packet lifecycle callback that implements packet receipt logic and return and acknowledgement packet.
      *      MUST be overriden by the inheriting contract.
      *      NOT SUPPORTED YET
-     * 
+     *
      * @param channelId the ID of the channel (locally) the timeout was submitted on.
      * @param packet the Universal packet encoded by the counterparty and relayed by the relayer
      */

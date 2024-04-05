@@ -10,4 +10,6 @@ interface IPolyERC20 is IERC20 {
         bytes32 channelId,
         uint64 timeoutSeconds
     ) external;
+
+    function mint(address account, uint256 amount) external;
 }

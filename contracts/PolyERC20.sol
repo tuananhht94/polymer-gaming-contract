@@ -10,7 +10,7 @@ contract PolyERC20 is UniversalChanIbcApp, ERC20 {
     event TransferSuccess();
     event TransferFailure();
 
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) UniversalChanIbcApp() {}
+    constructor(address _middleware) ERC20('PolyERC20', 'PolyERC20') UniversalChanIbcApp(_middleware) {}
 
     function mint(address account, uint256 amount) public virtual onlyOwner {
         _mint(account, amount);

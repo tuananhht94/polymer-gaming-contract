@@ -2,24 +2,23 @@
 
 pragma solidity ^0.8.9;
 
-import "./XUniversalBase.sol";
+import "./XGamingUCBase.sol";
 import "./IPolyERC20.sol";
+import "./BasePolyERC721.sol";
 
-contract XGamingUC is XUniversalBase {
+contract XGamingUC is XGamingUCBase {
     IPolyERC20 public polyERC20;
-    address public owner;
     event BuyNFTAckReceived(address recipient, uint256 nftId, string message);
 
     mapping(address => uint256) public latestFaucetTime;
     mapping(NFTType => uint256) public nftPrice;
     mapping(NFTType => uint256) public nftPoint;
-    // For leaderboard
     mapping(address => uint256) public userPoints;
 
     constructor(
         address _middleware,
         address _polyERC20
-    ) XUniversalBase(_middleware) {
+    ) XGamingUCBase(_middleware) {
         // Init nft prices
         nftPrice[NFTType.POLY1] = 25;
         nftPrice[NFTType.POLY2] = 50;
@@ -30,33 +29,26 @@ contract XGamingUC is XUniversalBase {
         nftPoint[NFTType.POLY2] = 50;
         nftPoint[NFTType.POLY3] = 150;
         nftPoint[NFTType.POLY4] = 500;
-        owner = msg.sender;
-        setPolyERC20(_polyERC20);
-    }
-
-    function setPolyERC20(address _polyERC20) external {
-        require(msg.sender == owner, "Only owner can call this function");
         polyERC20 = IPolyERC20(_polyERC20);
     }
 
-    /**
-     * @dev Faucet function to distribute tokens to users.
-     *      Can be called every 5 minutes.
-     *      Minimum faucet amount is 1 token.
-     *      Maximum faucet amount is 10 tokens.
-     */
-    function faucetToken() external {
+    function faucetToken(
+        address destPortAddr,
+        bytes32 channelId,
+        uint64 timeoutSeconds
+    ) external {
         require(
             block.timestamp >= latestFaucetTime[msg.sender] + 5 minutes,
             "Faucet: Too soon"
         );
-
-        uint256 faucetAmount = _getRandomNumber(1, 10); // Generate random faucet amount between 1 and 10
-
-        require(faucetAmount <= 10, "Faucet: Amount exceeds maximum");
-        polyERC20.approve(msg.sender, nftPrice[nftType]);
-        polyERC20.transfer(msg.sender, faucetAmount);
         latestFaucetTime[msg.sender] = block.timestamp;
+
+        _sendUniversalPacket(
+            destPortAddr,
+            channelId,
+            timeoutSeconds,
+            abi.encode(IbcPacketType.FAUCET, abi.encode(msg.sender))
+        );
     }
 
     function buyNFToken(
@@ -69,8 +61,6 @@ contract XGamingUC is XUniversalBase {
             polyERC20.balanceOf(msg.sender) >= nftPrice[nftType],
             "Insufficient balance"
         );
-        polyERC20.approve(msg.sender, nftPrice[nftType]);
-        polyERC20.transfer(owner, nftPrice[nftType]);
         // Mint NFT
         _sendUniversalPacket(
             destPortAddr,
@@ -80,7 +70,7 @@ contract XGamingUC is XUniversalBase {
         );
     }
 
-    function byRandomNFT(
+    function buyRandomNFT(
         address destPortAddr,
         bytes32 channelId,
         uint64 timeoutSeconds
@@ -97,21 +87,12 @@ contract XGamingUC is XUniversalBase {
         buyNFToken(destPortAddr, channelId, timeoutSeconds, nftType);
     }
 
-    /**
-     * @dev Generates a random number between 1 and 10 (inclusive).
-     * @return Random number between 1 and 10.
-     */
     function _getRandomNumber(
         uint256 min,
         uint256 max
     ) internal view returns (uint256) {
         require(min <= max, "Invalid range");
-        uint256 randomNumber = (uint256(
-            keccak256(
-                abi.encodePacked(block.timestamp, block.basefee, msg.sender)
-            )
-        ) % (max - min + 1)) + min;
-        return randomNumber;
+        return (uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender))) % (max - min + 1)) + min;
     }
 
     /**
@@ -143,9 +124,6 @@ contract XGamingUC is XUniversalBase {
     }
 
     function _burnNFT(PacketNFT memory packet) internal {
-        uint256 nftPrice = nftPrice[packet.nftType];
-        polyERC20.approve(packet.recipient, nftPrice);
-        polyERC20.transfer(to, nftPrice);
         // TODO update Leaderboard points
     }
 
@@ -167,16 +145,13 @@ contract XGamingUC is XUniversalBase {
         AckPacket calldata ack
     ) external override onlyIbcMw {
         ackPackets.push(UcAckWithChannel(channelId, packet, ack));
-        (IbcPacketType packetType, address caller, uint256 tokenId) = abi
-            .decode(ack.data, (IbcPacketType, address, uint256));
-        if (packetType == IbcPacketType.BUY_NFT) {
-            emit BuyNFTAckReceived(recipient, nftId, "NFT bought successfully");
+        (IbcPacketType packetType, bytes memory data) = abi.decode(ack.data, (IbcPacketType, bytes ));
+
+        if (packetType == IbcPacketType.FAUCET) {
+            (address caller, uint256 amount) = abi.decode(data, (address, uint256));
+            polyERC20.mint(caller, amount);
         } else if (packetType == IbcPacketType.BUY_RANDOM_NFT) {
-            emit BuyNFTAckReceived(
-                recipient,
-                nftId,
-                "NFT bought random successfully"
-            );
+            // TODO: Implement logic to mint NFT
         } else {
             revert("Invalid packet type");
         }

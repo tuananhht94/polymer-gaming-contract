@@ -7,11 +7,45 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./BasePolyERC721.sol";
 
-contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721 {
+contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
+    uint256 public currentTokenId = 0;
+    string public tokenURIC4 =
+    "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
+
     event MintAckReceived(address receiver, uint256 tokenId, string message);
     event NFTAckReceived(address voter, address recipient, uint256 voteId);
 
-    constructor(address _middleware) UniversalChanIbcApp(_middleware) BasePolyERC721() {
+    constructor(address _middleware) UniversalChanIbcApp(_middleware) ERC721("PolymerC4NFT", "POLY4") {
+        tokenURIs[NFTType.POLY1] = "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
+        tokenURIs[NFTType.POLY2] = "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
+        tokenURIs[NFTType.POLY3] = "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
+        tokenURIs[NFTType.POLY4] = "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
+    }
+
+    function mint(address recipient, NFTType pType) internal returns (uint256) {
+        currentTokenId += 1;
+        uint256 tokenId = currentTokenId;
+        tokenTypeMap[tokenId] = pType;
+        typeTokenMap[pType].push(tokenId);
+        _safeMint(recipient, tokenId);
+        return tokenId;
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
+        revert("Transfer not allowed");
+    }
+
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        _requireMinted(tokenId);
+        return tokenURIs[tokenTypeMap[tokenId]];
+    }
+
+    function updateTokenURI(string memory _newTokenURI) public {
+        tokenURIC4 = _newTokenURI;
+    }
+
+    function getTokenId() public view returns (uint256) {
+        return currentTokenId;
     }
 
     function randomMint(address recipient) public {
@@ -43,6 +77,14 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721 {
         );
     }
 
+    function _getRandomNumber(
+        uint256 min,
+        uint256 max
+    ) internal view returns (uint256) {
+        require(min <= max, "Invalid range");
+        return (uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender))) % (max - min + 1)) + min;
+    }
+
     /**
      * @dev Packet lifecycle callback that implements packet receipt logic and returns and acknowledgement packet.
      *      MUST be overriden by the inheriting contract.
@@ -58,11 +100,15 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721 {
     {
         recvedPackets.push(UcPacketWithChannel(channelId, packet));
 
-        (address _caller, NFTType tokenType) = abi.decode(packet.appData, (address, NFTType));
+        (IbcPacketType packageType, bytes memory data) = abi.decode(packet.appData, ((IbcPacketType), bytes));
 
-        uint256 tokenId = mint(_caller, tokenType);
-
-        return AckPacket(true, abi.encode(_caller, tokenId));
+        if (packageType == IbcPacketType.FAUCET) {
+            address caller = abi.decode(data, (address));
+            uint256 amount = _getRandomNumber(1, 10);
+            return AckPacket(true, abi.encode(packageType, abi.encode(caller, amount)));
+        } else {
+            revert("Invalid packet type");
+        }
     }
 
     /**

@@ -3,30 +3,9 @@
 pragma solidity ^0.8.9;
 
 import "./base/UniversalChanIbcApp.sol";
+import "./BasePolyERC721.sol";
 
-contract XUniversalBase is UniversalChanIbcApp {
-    enum IbcPacketStatus {
-        UNSENT,
-        SENT,
-        ACKED,
-        TIMEOUT
-    }
-
-    enum NFTType {
-        POLY1,
-        POLY2,
-        POLY3,
-        POLY4
-    }
-
-    enum IbcPacketType {
-        BURN_NFT,
-        RETURN_NFT,
-        MINT_NFT,
-        BUY_NFT,
-        BUY_RANDOM_NFT
-    }
-
+contract XGamingUCBase is BasePolyERC721, UniversalChanIbcApp {
     struct PacketNFT {
         NFTType nftType;
         uint256 tokenId;
