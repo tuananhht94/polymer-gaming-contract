@@ -5,44 +5,13 @@ pragma solidity ^0.8.9;
 import "./base/UniversalChanIbcApp.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "./BasePolyERC721.sol";
 
-contract PolyERC721UC is UniversalChanIbcApp, ERC721 {
-    uint256 public currentTokenId = 0;
-    string public tokenURIC4 =
-    "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
-
+contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721 {
     event MintAckReceived(address receiver, uint256 tokenId, string message);
     event NFTAckReceived(address voter, address recipient, uint256 voteId);
 
-    enum NFTType {
-        POLY1,
-        POLY2,
-        POLY3,
-        POLY4
-    }
-
-    mapping(uint256 => NFTType) public tokenTypeMap;
-    mapping(NFTType => string) public tokenURIs;
-    mapping(NFTType => uint256[]) public typeTokenMap;
-
-    constructor(address _middleware) UniversalChanIbcApp(_middleware) ERC721("PolymerC4NFT", "POLY4") {
-        tokenURIs[NFTType.POLY1] =
-                    "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
-        tokenURIs[NFTType.POLY2] =
-                    "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
-        tokenURIs[NFTType.POLY3] =
-                    "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
-        tokenURIs[NFTType.POLY4] =
-                    "https://emerald-uncertain-cattle-112.mypinata.cloud/ipfs/QmZu7WiiKyytxwwKSwr6iPT1wqCRdgpqQNhoKUyn1CkMD3";
-    }
-
-    function mint(address recipient, NFTType pType) internal returns (uint256) {
-        currentTokenId += 1;
-        uint256 tokenId = currentTokenId;
-        tokenTypeMap[tokenId] = pType;
-        typeTokenMap[pType].push(tokenId);
-        _safeMint(recipient, tokenId);
-        return tokenId;
+    constructor(address _middleware) UniversalChanIbcApp(_middleware) BasePolyERC721() {
     }
 
     function randomMint(address recipient) public {
@@ -56,23 +25,6 @@ contract PolyERC721UC is UniversalChanIbcApp, ERC721 {
             pType = NFTType.POLY4;
         }
         mint(recipient, pType);
-    }
-
-    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
-        revert("Transfer not allowed");
-    }
-
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        _requireMinted(tokenId);
-        return tokenURIs[tokenTypeMap[tokenId]];
-    }
-
-    function updateTokenURI(string memory _newTokenURI) public {
-        tokenURIC4 = _newTokenURI;
-    }
-
-    function getTokenId() public view returns (uint256) {
-        return currentTokenId;
     }
 
     function crossChainMint(address destPortAddr, bytes32 channelId, uint64 timeoutSeconds, NFTType tokenType)
