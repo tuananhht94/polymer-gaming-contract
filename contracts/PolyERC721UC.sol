@@ -45,12 +45,12 @@ contract PolyERC721UC is BaseGameUC, ERC721 {
         bytes32 channelId,
         uint64 timeoutSeconds,
         uint256 tokenId
-    ) public {
+    ) external {
         require(ownerOf(tokenId) == msg.sender, "Not the owner");
         _burn(tokenId);
-        delete _tokenTypeMap[tokenId];
-        delete _ownerTokenMap[msg.sender][tokenId];
-        delete _typeTokenMap[_tokenTypeMap[tokenId]][tokenId];
+        // delete _tokenTypeMap[tokenId];
+        // delete _ownerTokenMap[msg.sender][tokenId];
+        // delete _typeTokenMap[_tokenTypeMap[tokenId]];
         _sendUniversalPacket(
             destPortAddr,
             channelId,
@@ -179,17 +179,7 @@ contract PolyERC721UC is BaseGameUC, ERC721 {
         AckPacket calldata ack
     ) external override onlyIbcMw {
         ackPackets.push(UcAckWithChannel(channelId, packet, ack));
-//        (IbcPacketType packetType, bytes memory data) = abi.decode(
-//            ack.data,
-//            (IbcPacketType, bytes)
-//        );
-
-//        if (packetType == IbcPacketType.BURN_NFT) {
-//            (address caller, uint256 tokenId) = abi.decode(
-//                data,
-//                (address, uint256)
-//            );
-//        }
+        // NOOP
     }
 
     /**
