@@ -81,7 +81,7 @@ The account associated with your private key must have both Base Sepolia and Opt
 ### 1. Compile contracts
 
 ```bash
-npx hardhat run compile
+just compile
 ```
 
 ### 2. Deploy PolymerERC20 on OP
@@ -89,24 +89,29 @@ npx hardhat run compile
 ```bash
 npx hardhat run scripts/deploy/deployPolyERC20.js --network optimism
 ```
+### 3. Update config
+Append PolymerERC20 contract address was deployed from step 2 to `.env`
 
-### 3. Set config contract XGamingUC and PolyERC721UC
+```bash
+POLY_ERC20_ADDRESS = <POLYMER_ERC20_ADDRESS>
+```
+
+### 4. Set config contract XGamingUC and PolyERC721UC
 
 ```bash
 just set-contracts optimism XGamingUC true && just set-contracts base PolyERC721UC true
 ```
 
-### 4. Deploy contract XGamingUC and PolyERC721UC
+### 5. Deploy contract XGamingUC and PolyERC721UC
 
 ```bash
 just deploy optimism base
 ```
+### 6. Add operator for XGameIng
 
-### 5. Update config
-Append PolymerERC20 contract address was deployed from step 2 to `config.json`
-
-```bash
-POLY_ERC20_ADDRESS = <POLYMER_ERC20_ADDRESS>
+###
+```bash 
+npx hardhat run scripts/deploy/updateXGamingConfig.js  --network optimism 
 ```
 
 ## 🕹️ Interaction with the contracts
@@ -128,4 +133,9 @@ npx hardhat run scripts/XGaming/buyNft.js
 
 ```bash
 npx hardhat run scripts/XGaming/buyRandomNft.js
+```
+### 4. Burn NFT 
+
+```bash
+npx hardhat run scripts/XGaming/burnNft.js --network base
 ```

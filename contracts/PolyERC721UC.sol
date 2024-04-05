@@ -5,9 +5,9 @@ pragma solidity ^0.8.9;
 import "./base/UniversalChanIbcApp.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "./BasePolyERC721.sol";
+import "./BaseGameUC.sol";
 
-contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
+contract PolyERC721UC is BaseGameUC, ERC721 {
     uint256 public currentTokenId = 0;
     mapping(NFTType => string) public tokenURIs;
     string public tokenURIC4 =
@@ -15,7 +15,7 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
 
     constructor(
         address _middleware
-    ) UniversalChanIbcApp(_middleware) ERC721("PolymerNFT", "POLY") {
+    ) BaseGameUC(_middleware) ERC721("PolymerNFT", "POLY") {
         tokenURIs[
             NFTType.POLY1
         ] = "https://media.discordapp.net/attachments/1222189690816565328/1225547538548129802/DALLE_2024-04-04_12.53.18_-_Create_an_image_of_a_fluffy_orange_adventurous_creature_resembling_an_intrepid_explorer._The_creature_should_have_large_eyes_a_bright_and_determine.webp?ex=66218716&is=660f1216&hm=1afd67dc360792fb98ac18d951c618ba430776280e34866e27fbd21e8e60865b&=&format=webp&width=1288&height=1288";
@@ -33,9 +33,9 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
     function mint(address recipient, NFTType pType) internal returns (uint256) {
         currentTokenId += 1;
         uint256 tokenId = currentTokenId;
-        tokenTypeMap[tokenId] = pType;
-        ownerTokenMap[recipient].push(tokenId);
-        typeTokenMap[pType].push(tokenId);
+        _tokenTypeMap[tokenId] = pType;
+        _ownerTokenMap[recipient].push(tokenId);
+        _typeTokenMap[pType].push(tokenId);
         _safeMint(recipient, tokenId);
         return tokenId;
     }
@@ -45,12 +45,12 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
         bytes32 channelId,
         uint64 timeoutSeconds,
         uint256 tokenId
-    ) public {
+    ) external {
         require(ownerOf(tokenId) == msg.sender, "Not the owner");
         _burn(tokenId);
-        delete tokenTypeMap[tokenId];
-        delete ownerTokenMap[msg.sender][tokenId];
-        delete typeTokenMap[tokenTypeMap[tokenId]][tokenId];
+        // delete _tokenTypeMap[tokenId];
+        // delete _ownerTokenMap[msg.sender][tokenId];
+        // delete _typeTokenMap[_tokenTypeMap[tokenId]];
         _sendUniversalPacket(
             destPortAddr,
             channelId,
@@ -71,7 +71,7 @@ contract PolyERC721UC is UniversalChanIbcApp, BasePolyERC721, ERC721 {
         uint256 tokenId
     ) public view virtual override returns (string memory) {
         _requireMinted(tokenId);
-        return tokenURIs[tokenTypeMap[tokenId]];
+        return tokenURIs[_tokenTypeMap[tokenId]];
     }
 
     function updateTokenURI(string memory _newTokenURI) public {
