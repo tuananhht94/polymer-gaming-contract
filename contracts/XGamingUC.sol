@@ -2,11 +2,10 @@
 
 pragma solidity ^0.8.9;
 
-import "./XGamingUCBase.sol";
 import "./IPolyERC20.sol";
-import "./BasePolyERC721.sol";
+import "./BaseGameUC.sol";
 
-contract XGamingUC is XGamingUCBase {
+contract XGamingUC is BaseGameUC {
     IPolyERC20 public polyERC20;
     event BuyNFTAckReceived(address recipient, uint256 nftId, string message);
 
@@ -15,7 +14,7 @@ contract XGamingUC is XGamingUCBase {
     mapping(NFTType => uint256) public nftPoint;
     uint256 public randomPriceBuyNFTAmount = 60;
 
-    constructor(address _middleware) XGamingUCBase(_middleware) {
+    constructor(address _middleware) BaseGameUC(_middleware) {
         // Init nft prices
         nftPrice[NFTType.POLY1] = 25;
         nftPrice[NFTType.POLY2] = 50;
@@ -124,21 +123,13 @@ contract XGamingUC is XGamingUCBase {
         );
         if (packetType == IbcPacketType.BURN_NFT) {
             (address caller, uint256 tokenId) = abi.decode(data, (address, uint256));
-            polyERC20.mint(caller, nftPrice[tokenTypeMap[tokenId]]);
-            delete tokenTypeMap[tokenId];
-            delete ownerTokenMap[caller][tokenId];
-            delete typeTokenMap[tokenTypeMap[tokenId]];
+            polyERC20.mint(caller, nftPrice[_tokenTypeMap[tokenId]]);
+            delete _tokenTypeMap[tokenId];
+            delete _ownerTokenMap[caller][tokenId];
+            delete _typeTokenMap[_tokenTypeMap[tokenId]];
         }
 
         return AckPacket(true, packet.appData);
-    }
-
-    function _burnNFT(PacketNFT memory packet) internal {
-        // TODO update Leaderboard points
-    }
-
-    function _returnNFT(PacketNFT memory packet) internal {
-        // TODO: Implement logic to return NFT to the caller
     }
 
     /**
@@ -171,9 +162,9 @@ contract XGamingUC is XGamingUCBase {
                 data,
                 (address, NFTType, uint256)
             );
-            tokenTypeMap[tokenId] = nftType;
-            ownerTokenMap[caller].push(tokenId);
-            typeTokenMap[nftType].push(tokenId);
+            _tokenTypeMap[tokenId] = nftType;
+            _ownerTokenMap[caller].push(tokenId);
+            _typeTokenMap[nftType].push(tokenId);
             polyERC20.burn(nftPrice[nftType] * 10 ** 18);
             emit BuyNFTAckReceived(caller, tokenId, "NFT bought successfully");
         } else if (packetType == IbcPacketType.BUY_RANDOM_NFT) {
@@ -181,8 +172,8 @@ contract XGamingUC is XGamingUCBase {
                 data,
                 (address, NFTType, uint256)
             );
-            tokenTypeMap[tokenId] = nftType;
-            typeTokenMap[nftType].push(tokenId);
+            _tokenTypeMap[tokenId] = nftType;
+            _typeTokenMap[nftType].push(tokenId);
             polyERC20.burn(randomPriceBuyNFTAmount * 10 ** 18);
             emit BuyNFTAckReceived(
                 caller,
