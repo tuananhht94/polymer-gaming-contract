@@ -29,7 +29,7 @@ async function main() {
     await polyERC20.connect(accounts[0]).mint(accounts[0].address, hre.ethers.parseEther("1000"));
     await polyERC20.connect(accounts[0]).approve(ibcApp.target, hre.ethers.parseEther("10000"));
     const tx = await ibcApp.connect(accounts[0]).buyNFT(destPortAddr, channelIdBytes, timeoutSeconds, 1);
-    console.log(tx);
+    console.log(tx.hash);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
