@@ -15,8 +15,8 @@ contract XGamingUC is BaseGameUC {
     uint256 public randomPriceBuyNFTAmount = 60;
 
     struct Player {
-        uint256 score;
-        uint256 index;
+        uint256 points;
+        uint256 rank;
     }
 
     mapping(address => Player) public players;
@@ -142,9 +142,9 @@ contract XGamingUC is BaseGameUC {
     function calculateUserPoint(address user) public {
         Player storage player = players[user];
 
-        if (player.score == 0) {
+        if (player.points == 0) {
             leaderboard.push(user);
-            player.index = leaderboard.length;
+            player.rank = leaderboard.length;
         }
 
         uint256[] memory nftTypeCount = new uint256[](4);
@@ -159,16 +159,16 @@ contract XGamingUC is BaseGameUC {
             }
         }
 
-        player.score = minNFT * 2000;
+        player.points = minNFT * 2000;
         for (uint256 i = 0; i < 4; i++) {
-            player.score += (nftTypeCount[i] - minNFT) * nftPoint[NFTType(i)];
+            player.points += (nftTypeCount[i] - minNFT) * nftPoint[NFTType(i)];
         }
 
-        uint256 currentIndex = player.index;
-        while (currentIndex > 1 && players[leaderboard[currentIndex - 1]].score > player.score) {
+        uint256 currentIndex = player.rank;
+        while (currentIndex > 1 && players[leaderboard[currentIndex - 1]].points > player.points) {
             (leaderboard[currentIndex - 1], leaderboard[currentIndex]) = (leaderboard[currentIndex], leaderboard[currentIndex - 1]);
-            players[leaderboard[currentIndex]].index = currentIndex;
-            players[leaderboard[currentIndex - 1]].index = currentIndex - 1;
+            players[leaderboard[currentIndex]].rank = currentIndex;
+            players[leaderboard[currentIndex - 1]].rank = currentIndex - 1;
             currentIndex--;
         }
     }
@@ -185,7 +185,7 @@ contract XGamingUC is BaseGameUC {
         for (uint256 i = 0; i < count; i++) {
             address playerAddress = leaderboard[i];
             topPlayers[i] = playerAddress;
-            topScores[i] = players[playerAddress].score;
+            topScores[i] = players[playerAddress].points;
         }
 
         return (topPlayers, topScores);
