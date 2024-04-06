@@ -94,17 +94,6 @@ contract PolyERC721UC is BaseGameUC, ERC721 {
         return (tokenId, pType);
     }
 
-    function getRandomNumber(
-        uint256 min,
-        uint256 max
-    ) public view returns (uint256) {
-        require(min <= max, "Invalid range");
-        uint256 blockValue = uint256(blockhash(block.number - 1));
-        return
-            (uint256(keccak256(abi.encodePacked(blockValue, block.timestamp))) %
-                (max - min + 1)) + min;
-    }
-
     /**
      * @dev Packet lifecycle callback that implements packet receipt logic and returns and acknowledgement packet.
      *      MUST be overriden by the inheriting contract.
@@ -124,8 +113,7 @@ contract PolyERC721UC is BaseGameUC, ERC721 {
         );
 
         if (packageType == IbcPacketType.FAUCET) {
-            address caller = abi.decode(data, (address));
-            uint256 amount = getRandomNumber(1, 10);
+            (address caller, uint256 amount) = abi.decode(data, (address, uint256));
             return
                 AckPacket(
                     true,

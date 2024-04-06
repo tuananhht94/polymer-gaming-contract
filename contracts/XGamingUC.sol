@@ -10,6 +10,7 @@ contract XGamingUC is BaseGameUC {
     event BuyNFTAckReceived(address recipient, uint256 nftId, string message);
 
     mapping(address => uint256) public latestFaucetTime;
+    event FaucetToken(address recipient, uint256 amount);
     mapping(NFTType => uint256) public nftPrice;
     mapping(NFTType => uint256) public nftPoint;
     uint256 public randomPriceBuyNFTAmount = 60;
@@ -43,19 +44,23 @@ contract XGamingUC is BaseGameUC {
         address destPortAddr,
         bytes32 channelId,
         uint64 timeoutSeconds
-    ) external {
+    ) external returns (uint256) {
         require(
             block.timestamp >= latestFaucetTime[msg.sender] + 5 minutes,
             "Faucet: Too soon"
         );
         latestFaucetTime[msg.sender] = block.timestamp;
 
+        uint256 amount = getRandomNumber(1, 10);
         _sendUniversalPacket(
             destPortAddr,
             channelId,
             timeoutSeconds,
-            abi.encode(IbcPacketType.FAUCET, abi.encode(msg.sender))
+            abi.encode(IbcPacketType.FAUCET, abi.encode(msg.sender, amount))
         );
+        emit FaucetToken(msg.sender, amount);
+
+        return amount;
     }
 
     function buyNFT(
