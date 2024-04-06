@@ -13,7 +13,14 @@ contract XGamingUC is BaseGameUC {
     mapping(NFTType => uint256) public nftPrice;
     mapping(NFTType => uint256) public nftPoint;
     uint256 public randomPriceBuyNFTAmount = 60;
-    mapping(address => uint256) public userPoints;
+
+    struct Player {
+        uint256 score;
+        uint256 index;
+    }
+
+    mapping(address => Player) public players;
+    address[] public leaderboard;
 
     constructor(address _middleware) BaseGameUC(_middleware) {
         // Init nft prices
@@ -126,9 +133,66 @@ contract XGamingUC is BaseGameUC {
             (address caller, uint256 tokenId) = abi.decode(data, (address, uint256));
             polyERC20.mint(caller, nftPrice[_tokenTypeMap[tokenId]] * 10 ** 18 * 20 / 100);
             deleteToken(tokenId);
+            calculateUserPoint(caller);
         }
 
         return AckPacket(true, packet.appData);
+    }
+
+    function calculateUserPoint(address user) public {
+        Player storage player = players[user];
+
+        if (player.score == 0) {
+            leaderboard.push(user);
+            player.index = leaderboard.length;
+        }
+
+        uint256[] memory nftTypeCount = new uint256[](4);
+        for (uint256 i = 0; i < 4; i++) {
+            nftTypeCount[i] = _ownerTokenMap[user][NFTType(i)].length;
+        }
+
+        uint256 minNFT = nftTypeCount[0];
+        for (uint256 i = 1; i < 4; i++) {
+            if (nftTypeCount[i] < minNFT) {
+                minNFT = nftTypeCount[i];
+            }
+        }
+
+        player.score = minNFT * 2000;
+        for (uint256 i = 0; i < 4; i++) {
+            player.score += (nftTypeCount[i] - minNFT) * nftPoint[NFTType(i)];
+        }
+
+        uint256 currentIndex = player.index;
+        while (currentIndex > 1 && players[leaderboard[currentIndex - 1]].score > player.score) {
+            (leaderboard[currentIndex - 1], leaderboard[currentIndex]) = (leaderboard[currentIndex], leaderboard[currentIndex - 1]);
+            players[leaderboard[currentIndex]].index = currentIndex;
+            players[leaderboard[currentIndex - 1]].index = currentIndex - 1;
+            currentIndex--;
+        }
+    }
+
+    function getTopPlayers(uint256 _count) external view returns (address[] memory, uint256[] memory) {
+        uint256 count = _count;
+        if (count > leaderboard.length) {
+            count = leaderboard.length;
+        }
+
+        address[] memory topPlayers = new address[](count);
+        uint256[] memory topScores = new uint256[](count);
+
+        for (uint256 i = 0; i < count; i++) {
+            address playerAddress = leaderboard[i];
+            topPlayers[i] = playerAddress;
+            topScores[i] = players[playerAddress].score;
+        }
+
+        return (topPlayers, topScores);
+    }
+
+    function getLeaderboard() external view returns (address[] memory) {
+        return leaderboard;
     }
 
     /**
@@ -163,6 +227,7 @@ contract XGamingUC is BaseGameUC {
             );
             addToken(caller, tokenId, nftType);
             polyERC20.burn(nftPrice[nftType] * 10 ** 18);
+            calculateUserPoint(caller);
             emit BuyNFTAckReceived(caller, tokenId, "NFT bought successfully");
         } else if (packetType == IbcPacketType.BUY_RANDOM_NFT) {
             (address caller, NFTType nftType, uint256 tokenId) = abi.decode(
@@ -171,6 +236,7 @@ contract XGamingUC is BaseGameUC {
             );
             addToken(caller, tokenId, nftType);
             polyERC20.burn(randomPriceBuyNFTAmount * 10 ** 18);
+            calculateUserPoint(caller);
             emit BuyNFTAckReceived(
                 caller,
                 tokenId,
