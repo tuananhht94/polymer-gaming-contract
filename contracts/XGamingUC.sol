@@ -13,7 +13,7 @@ contract XGamingUC is BaseGameUC {
     event FaucetToken(address recipient, uint256 amount);
     mapping(NFTType => uint256) public nftPrice;
     mapping(NFTType => uint256) public nftPoint;
-    uint256 public randomPriceBuyNFTAmount = 60;
+    uint256 public randomPriceBuyNFTAmount = 30;
 
     struct Player {
         uint256 points;

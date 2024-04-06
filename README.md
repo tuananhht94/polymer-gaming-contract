@@ -87,7 +87,7 @@ just compile
 ### 2. Deploy PolymerERC20 on OP
 
 ```bash
-npx hardhat run scripts/deploy/deployPolyERC20.js --network optimism
+just deploy-PolyERC20 optimism
 ```
 ### 3. Update config
 Append PolymerERC20 contract address was deployed from step 2 to `.env`
@@ -107,11 +107,11 @@ just set-contracts optimism XGamingUC true && just set-contracts base PolyERC721
 ```bash
 just deploy optimism base
 ```
-### 6. Add operator for XGameIng
-
+### 6. Update config for XGamingUC contract
+Describe a role operator to this contract to manager faucet, mint, buy and burn PolyERC20 and NFT.
 ###
 ```bash 
-npx hardhat run scripts/deploy/updateXGamingConfig.js  --network optimism 
+just set-operator-XGamingUC
 ```
 
 ## 🕹️ Interaction with the contracts
