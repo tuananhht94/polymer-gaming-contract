@@ -195,17 +195,41 @@ contract XGamingUC is BaseGameUC {
         }
 
         uint256 currentIndex = player.rank;
-        while (
-            currentIndex > 1 &&
-            players[leaderboard[currentIndex - 1]].points > player.points
-        ) {
-            (leaderboard[currentIndex - 1], leaderboard[currentIndex]) = (
-                leaderboard[currentIndex],
-                leaderboard[currentIndex - 1]
-            );
-            players[leaderboard[currentIndex]].rank = currentIndex;
-            players[leaderboard[currentIndex - 1]].rank = currentIndex - 1;
-            currentIndex--;
+        if (player.points < points) {
+            player.points = points;
+            while (
+                currentIndex > 1 &&
+                players[leaderboard[currentIndex - 2]].points < player.points
+            ) {
+                (
+                    leaderboard[currentIndex - 2],
+                    leaderboard[currentIndex - 1]
+                ) = (
+                    leaderboard[currentIndex - 1],
+                    leaderboard[currentIndex - 2]
+                );
+                players[leaderboard[currentIndex - 1]].rank = currentIndex;
+                players[leaderboard[currentIndex - 2]].rank = currentIndex - 1;
+                currentIndex--;
+            }
+        } else {
+            player.points = points;
+            while (
+                currentIndex < leaderboard.length &&
+                players[leaderboard[currentIndex]].points > player.points
+            ) {
+                (leaderboard[currentIndex], leaderboard[currentIndex - 1]) = (
+                    leaderboard[currentIndex - 1],
+                    leaderboard[currentIndex]
+                );
+                players[leaderboard[currentIndex]].rank = currentIndex + 1;
+                players[leaderboard[currentIndex - 1]].rank = currentIndex;
+                currentIndex++;
+            }
+        }
+
+        if (leaderboard.length > 50) {
+            leaderboard.pop();
         }
     }
 
@@ -289,9 +313,8 @@ contract XGamingUC is BaseGameUC {
                 caller,
                 (nftPrice[_tokenTypeMap[tokenId]] * 10 ** 18 * 20) / 100
             );
-            deleteToken(tokenId);
             calculateUserPoint(caller);
-        } 
+        }
     }
 
     /**
