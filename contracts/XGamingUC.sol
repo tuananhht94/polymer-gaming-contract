@@ -87,6 +87,25 @@ contract XGamingUC is BaseGameUC {
         );
     }
 
+    function burn(
+        address destPortAddr,
+        bytes32 channelId,
+        uint64 timeoutSeconds,
+        uint256 tokenId
+    ) external {
+        require(
+            _ownerTokenMap[msg.sender][_tokenTypeMap[tokenId]].length > 0,
+            "You don't own this token"
+        );
+        deleteToken(tokenId);
+        _sendUniversalPacket(
+            destPortAddr,
+            channelId,
+            timeoutSeconds,
+            abi.encode(IbcPacketType.BURN_NFT, abi.encode(msg.sender, tokenId))
+        );
+    }
+
     function buyRandomNFT(
         address destPortAddr,
         bytes32 channelId,
@@ -130,16 +149,22 @@ contract XGamingUC is BaseGameUC {
         UniversalPacket calldata packet
     ) external override onlyIbcMw returns (AckPacket memory ackPacket) {
         recvedPackets.push(UcPacketWithChannel(channelId, packet));
-        (IbcPacketType packetType, bytes memory data) = abi.decode(
-            packet.appData,
-            (IbcPacketType, bytes)
-        );
-        if (packetType == IbcPacketType.BURN_NFT) {
-            (address caller, uint256 tokenId) = abi.decode(data, (address, uint256));
-            polyERC20.mint(caller, nftPrice[_tokenTypeMap[tokenId]] * 10 ** 18 * 20 / 100);
-            deleteToken(tokenId);
-            calculateUserPoint(caller);
-        }
+        // (IbcPacketType packetType, bytes memory data) = abi.decode(
+        //     packet.appData,
+        //     (IbcPacketType, bytes)
+        // );
+        // if (packetType == IbcPacketType.BURN_NFT) {
+        //     (address caller, uint256 tokenId) = abi.decode(
+        //         data,
+        //         (address, uint256)
+        //     );
+        //     polyERC20.mint(
+        //         caller,
+        //         (nftPrice[_tokenTypeMap[tokenId]] * 10 ** 18 * 20) / 100
+        //     );
+        //     deleteToken(tokenId);
+        //     calculateUserPoint(caller);
+        // }
 
         return AckPacket(true, packet.appData);
     }
@@ -172,16 +197,31 @@ contract XGamingUC is BaseGameUC {
         uint256 currentIndex = player.rank;
         if (player.points < points) {
             player.points = points;
-            while (currentIndex > 1 && players[leaderboard[currentIndex - 2]].points < player.points) {
-                (leaderboard[currentIndex - 2], leaderboard[currentIndex - 1]) = (leaderboard[currentIndex - 1], leaderboard[currentIndex - 2]);
+            while (
+                currentIndex > 1 &&
+                players[leaderboard[currentIndex - 2]].points < player.points
+            ) {
+                (
+                    leaderboard[currentIndex - 2],
+                    leaderboard[currentIndex - 1]
+                ) = (
+                    leaderboard[currentIndex - 1],
+                    leaderboard[currentIndex - 2]
+                );
                 players[leaderboard[currentIndex - 1]].rank = currentIndex;
                 players[leaderboard[currentIndex - 2]].rank = currentIndex - 1;
                 currentIndex--;
             }
         } else {
             player.points = points;
-            while (currentIndex < leaderboard.length && players[leaderboard[currentIndex]].points > player.points) {
-                (leaderboard[currentIndex], leaderboard[currentIndex - 1]) = (leaderboard[currentIndex - 1], leaderboard[currentIndex]);
+            while (
+                currentIndex < leaderboard.length &&
+                players[leaderboard[currentIndex]].points > player.points
+            ) {
+                (leaderboard[currentIndex], leaderboard[currentIndex - 1]) = (
+                    leaderboard[currentIndex - 1],
+                    leaderboard[currentIndex]
+                );
                 players[leaderboard[currentIndex]].rank = currentIndex + 1;
                 players[leaderboard[currentIndex - 1]].rank = currentIndex;
                 currentIndex++;
@@ -193,7 +233,9 @@ contract XGamingUC is BaseGameUC {
         }
     }
 
-    function getTopPlayers(uint256 _count) external view returns (address[] memory, uint256[] memory) {
+    function getTopPlayers(
+        uint256 _count
+    ) external view returns (address[] memory, uint256[] memory) {
         uint256 count = _count;
         if (count > leaderboard.length) {
             count = leaderboard.length;
@@ -262,6 +304,16 @@ contract XGamingUC is BaseGameUC {
                 tokenId,
                 "NFT bought random successfully"
             );
+        } else if (packetType == IbcPacketType.BURN_NFT) {
+            (address caller, uint256 tokenId) = abi.decode(
+                data,
+                (address, uint256)
+            );
+            polyERC20.mint(
+                caller,
+                (nftPrice[_tokenTypeMap[tokenId]] * 10 ** 18 * 20) / 100
+            );
+            calculateUserPoint(caller);
         }
     }
 

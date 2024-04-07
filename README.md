@@ -137,5 +137,5 @@ npx hardhat run scripts/XGaming/buyRandomNft.js
 ### 4. Burn NFT 
 
 ```bash
-npx hardhat run scripts/XGaming/burnNft.js --network base
+npx hardhat run scripts/XGaming/burnNft.js --network optimism
 ```

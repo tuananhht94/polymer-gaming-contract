@@ -38,23 +38,6 @@ contract PolyERC721UC is BaseGameUC, ERC721 {
         return tokenId;
     }
 
-    function burn(
-        address destPortAddr,
-        bytes32 channelId,
-        uint64 timeoutSeconds,
-        uint256 tokenId
-    ) external {
-        require(ownerOf(tokenId) == msg.sender, "Not the owner");
-        _burn(tokenId);
-        deleteToken(tokenId);
-        _sendUniversalPacket(
-            destPortAddr,
-            channelId,
-            timeoutSeconds,
-            abi.encode(IbcPacketType.BURN_NFT, abi.encode(msg.sender, tokenId))
-        );
-    }
-
     function transferFrom(
         address from,
         address to,
@@ -113,7 +96,10 @@ contract PolyERC721UC is BaseGameUC, ERC721 {
         );
 
         if (packageType == IbcPacketType.FAUCET) {
-            (address caller, uint256 amount) = abi.decode(data, (address, uint256));
+            (address caller, uint256 amount) = abi.decode(
+                data,
+                (address, uint256)
+            );
             return
                 AckPacket(
                     true,
@@ -136,13 +122,25 @@ contract PolyERC721UC is BaseGameUC, ERC721 {
         } else if (packageType == IbcPacketType.BUY_RANDOM_NFT) {
             address caller = abi.decode(data, (address));
             (uint256 tokenId, NFTType nftType) = randomMint(caller);
-           return
+            return
                 AckPacket(
                     true,
                     abi.encode(
                         packageType,
                         abi.encode(caller, nftType, tokenId)
                     )
+                );
+        } else if (packageType == IbcPacketType.BURN_NFT) {
+            (address caller, uint256 tokenId) = abi.decode(
+                data,
+                (address, uint256)
+            );
+            _burn(tokenId);
+            deleteToken(tokenId);
+            return
+                AckPacket(
+                    true,
+                    packet.appData
                 );
         } else {
             revert("Invalid packet type");
@@ -163,17 +161,17 @@ contract PolyERC721UC is BaseGameUC, ERC721 {
         AckPacket calldata ack
     ) external override onlyIbcMw {
         ackPackets.push(UcAckWithChannel(channelId, packet, ack));
-//        (IbcPacketType packetType, bytes memory data) = abi.decode(
-//            ack.data,
-//            (IbcPacketType, bytes)
-//        );
+        //        (IbcPacketType packetType, bytes memory data) = abi.decode(
+        //            ack.data,
+        //            (IbcPacketType, bytes)
+        //        );
 
-//        if (packetType == IbcPacketType.BURN_NFT) {
-//            (address caller, uint256 tokenId) = abi.decode(
-//                data,
-//                (address, uint256)
-//            );
-//        }
+        //        if (packetType == IbcPacketType.BURN_NFT) {
+        //            (address caller, uint256 tokenId) = abi.decode(
+        //                data,
+        //                (address, uint256)
+        //            );
+        //        }
     }
 
     /**
