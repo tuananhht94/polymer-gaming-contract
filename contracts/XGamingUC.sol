@@ -164,17 +164,32 @@ contract XGamingUC is BaseGameUC {
             }
         }
 
-        player.points = minNFT * 2000;
+        uint256 points = minNFT * 2000;
         for (uint256 i = 0; i < 4; i++) {
-            player.points += (nftTypeCount[i] - minNFT) * nftPoint[NFTType(i)];
+            points += (nftTypeCount[i] - minNFT) * nftPoint[NFTType(i)];
         }
 
         uint256 currentIndex = player.rank;
-        while (currentIndex > 1 && players[leaderboard[currentIndex - 1]].points > player.points) {
-            (leaderboard[currentIndex - 1], leaderboard[currentIndex]) = (leaderboard[currentIndex], leaderboard[currentIndex - 1]);
-            players[leaderboard[currentIndex]].rank = currentIndex;
-            players[leaderboard[currentIndex - 1]].rank = currentIndex - 1;
-            currentIndex--;
+        if (player.points < points) {
+            player.points = points;
+            while (currentIndex > 1 && players[leaderboard[currentIndex - 2]].points < player.points) {
+                (leaderboard[currentIndex - 2], leaderboard[currentIndex - 1]) = (leaderboard[currentIndex - 1], leaderboard[currentIndex - 2]);
+                players[leaderboard[currentIndex - 1]].rank = currentIndex;
+                players[leaderboard[currentIndex - 2]].rank = currentIndex - 1;
+                currentIndex--;
+            }
+        } else {
+            player.points = points;
+            while (currentIndex < leaderboard.length && players[leaderboard[currentIndex]].points > player.points) {
+                (leaderboard[currentIndex], leaderboard[currentIndex - 1]) = (leaderboard[currentIndex - 1], leaderboard[currentIndex]);
+                players[leaderboard[currentIndex]].rank = currentIndex + 1;
+                players[leaderboard[currentIndex - 1]].rank = currentIndex;
+                currentIndex++;
+            }
+        }
+
+        if (leaderboard.length > 50) {
+            leaderboard.pop();
         }
     }
 
