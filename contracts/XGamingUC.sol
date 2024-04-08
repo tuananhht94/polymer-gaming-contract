@@ -95,7 +95,7 @@ contract XGamingUC is BaseGameUC {
     ) external {
         require(
             _ownerTokenMap[msg.sender][_tokenTypeMap[tokenId]].length > 0,
-            "You don't own this token"
+            "You dont own this token"
         );
         deleteToken(tokenId);
         _sendUniversalPacket(
