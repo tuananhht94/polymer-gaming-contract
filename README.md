@@ -1,14 +1,15 @@
-# ⛓️🔗⛓️ Template for IBC enabled Solidity contracts
+# ⛓️🔗⛓️ MFT Gaming Dapp for IBC enabled Solidity contracts
+Document [Link](https://forum.polymerlabs.org/t/quest-for-gaming-dapp-to-be-used-in-phase-2/714)
 
-This repo provides a starter project to build [IBC](https://github.com/cosmos/ibc) enabled Solidity contracts that connect rollups to one another Polymer Hub, through the [vIBC core contracts](https://github.com/open-ibc/vibc-core-smart-contracts).
+Live demo [https://polymer-phase2.tuananh.xyz/](https://polymer-phase2.tuananh.xyz/)
 
-The repository is a _GitHub template_ repository so you can click "Use this template" to create your own project repository without having the entire commit history of the template.
+## Team Members
+@lyhv - Team Leader
 
-![GitHub template](./img/gh_template.png)
+@tuananhht94 - Developer
 
-## 📚 Documentation
+@kushin101094 - Researcher
 
-There's some basic information here in the README but a more comprehensive documentation can be found in [the official Polymer documentation](https://docs.polymerlabs.org/docs/category/build-ibc-dapps-1).
 
 ## 📋 Prerequisites
 
@@ -138,4 +139,10 @@ npx hardhat run scripts/XGaming/buyRandomNft.js
 
 ```bash
 npx hardhat run scripts/XGaming/burnNft.js --network optimism
+```
+
+### 5. Show Leaderboard
+
+```bash
+npx hardhat run scripts/XGaming/leadboard.js
 ```
