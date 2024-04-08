@@ -4,7 +4,7 @@ Document [Link](https://forum.polymerlabs.org/t/quest-for-gaming-dapp-to-be-used
 Live demo [https://polymer-phase2.tuananh.xyz/](https://polymer-phase2.tuananh.xyz/)
 
 ## Team Members
-@lyhv - Team Leader
+@lyhv - Developer
 
 @tuananhht94 - Developer
 

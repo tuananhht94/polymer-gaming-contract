@@ -4,3 +4,6 @@
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "polymer-gaming-frontend"]
+	path = polymer-gaming-frontend
+	url = git@github.com:tuananhht94/polymer-gaming-frontend.git
