@@ -10,6 +10,7 @@ Live demo [https://polymer-phase2.tuananh.xyz/](https://polymer-phase2.tuananh.x
 
 @kushin101094 - Researcher
 
+@ThanhTuan1695 - Supporter
 
 ## 📋 Prerequisites
 
